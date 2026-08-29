@@ -58,10 +58,42 @@ export function cleanUrl(rawUrl) {
   }
 }
 
+export function stripHtmlAndEntities(raw) {
+  if (!raw) return '';
+  let text = String(raw);
+  // 1. Unwrap CDATA
+  text = text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1');
+
+  // 2. Decode standard entities first so escaped tags become tags
+  const decodeEntities = (s) => s
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&#x2F;/gi, '/')
+    .replace(/&#(\d+);/g, (_, dec) => {
+      try { return String.fromCharCode(parseInt(dec, 10)); } catch { return ''; }
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => {
+      try { return String.fromCharCode(parseInt(hex, 16)); } catch { return ''; }
+    });
+
+  text = decodeEntities(text);
+  // 3. Strip all HTML tags
+  text = text.replace(/<[^>]*>/g, ' ');
+  // 4. Decode entities again in case of double-encoded text
+  text = decodeEntities(text);
+  // 5. Clean extra whitespace
+  text = text.replace(/\s+/g, ' ').trim();
+  return text;
+}
+
 export function normalizeTitle(str) {
   if (!str) return '';
-  return String(str)
-    .replace(/<[^>]*>/g, '') // Strip HTML tags
+  return stripHtmlAndEntities(str)
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
@@ -86,23 +118,22 @@ export function parseXmlText(xmlText) {
     const descMatch = itemXml.match(/<description(?:\s[^>]*)?>([\s\S]*?)<\/description>/i);
     const sourceMatch = itemXml.match(/<source(?:\s[^>]*)?>([\s\S]*?)<\/source>/i);
 
-    const cleanField = (raw) => {
-      if (!raw) return '';
-      let text = raw.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1').trim();
-      return text.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
-    };
-
-    let title = cleanField(titleMatch ? titleMatch[1] : '');
-    let link = cleanField(linkMatch ? linkMatch[1] : '');
-    let rawPubDate = cleanField(pubDateMatch ? pubDateMatch[1] : '');
-    let description = cleanField(descMatch ? descMatch[1] : '');
-    let source = cleanField(sourceMatch ? sourceMatch[1] : '');
+    let title = stripHtmlAndEntities(titleMatch ? titleMatch[1] : '');
+    let link = (linkMatch ? linkMatch[1] : '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1').trim();
+    let rawPubDate = stripHtmlAndEntities(pubDateMatch ? pubDateMatch[1] : '');
+    let description = stripHtmlAndEntities(descMatch ? descMatch[1] : '');
+    let source = stripHtmlAndEntities(sourceMatch ? sourceMatch[1] : '');
 
     // Extract publisher from title if format is "Headline - Publisher"
     if (!source && title.includes(' - ')) {
       const parts = title.split(' - ');
       source = parts.pop().trim();
       title = parts.join(' - ').trim();
+    }
+
+    // Clean description if it contains or duplicates publisher name at the end
+    if (description && source && description.endsWith(source)) {
+      description = description.slice(0, -source.length).trim();
     }
 
     if (!title) continue;

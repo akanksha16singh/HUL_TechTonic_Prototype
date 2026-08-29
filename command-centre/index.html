@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="/shared/nav.css">
+<script src="/shared/vendor/react.production.min.js"></script>
+<script src="/shared/vendor/react-dom.production.min.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -58,11 +60,19 @@ a:hover{color:#163398}
   <header style="height:56px;flex:0 0 56px;background:#FFFFFF;border-bottom:1px solid #E3E8F2;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px">
     <!-- Left: Navigation & Branding -->
     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
-      <a href="/" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #DCE3F0;border-radius:7px;background:#F8FAFF;color:#1F44D6;font:700 11px/1 'Plus Jakarta Sans';text-decoration:none;transition:all .18s ease" style-hover="background:#EEF3FF;border-color:#1F44D6">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        Home
+      <a href="/" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #DCE3F0;border-radius:7px;background:#F8FAFF;color:#1F44D6;font:700 11px/1 'Plus Jakarta Sans';text-decoration:none;transition:all .18s ease">
+        Overview
       </a>
-      <a href="/war-room/" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #DCE3F0;border-radius:7px;background:#FFFFFF;color:#5A6884;font:700 11px/1 'Plus Jakarta Sans';text-decoration:none;transition:all .18s ease" style-hover="background:#F8FAFF;color:#0E1B33">
+      <a href="/moment-queue/" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #DCE3F0;border-radius:7px;background:#FFFFFF;color:#5A6884;font:700 11px/1 'Plus Jakarta Sans';text-decoration:none;transition:all .18s ease">
+        Queue
+      </a>
+      <a href="/scorecard/" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #DCE3F0;border-radius:7px;background:#FFFFFF;color:#5A6884;font:700 11px/1 'Plus Jakarta Sans';text-decoration:none;transition:all .18s ease">
+        Scorecard
+      </a>
+      <a href="/decision-record/" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #DCE3F0;border-radius:7px;background:#FFFFFF;color:#5A6884;font:700 11px/1 'Plus Jakarta Sans';text-decoration:none;transition:all .18s ease">
+        Decision
+      </a>
+      <a href="/war-room/" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #DCE3F0;border-radius:7px;background:#FFFFFF;color:#5A6884;font:700 11px/1 'Plus Jakarta Sans';text-decoration:none;transition:all .18s ease">
         War Room →
       </a>
       <div style="width:1px;height:20px;background:#E3E8F2"></div>
@@ -234,7 +244,17 @@ a:hover{color:#163398}
               </sc-for>
             </div>
           </div>
-          <div style="width:252px;flex:0 0 252px">
+          <div style="width:264px;flex:0 0 264px">
+            <sc-if value="{{ decision.hasCustomDetails }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-bottom:10px;padding:9px 12px;background:#F0F5FF;border:1px solid #C7D6FF;border-radius:10px;font-size:11px;color:#1F44D6">
+                <div style="font-weight:700;display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                  <span>✨ Detail Customized</span>
+                  <span style="font-weight:800;font-family:'IBM Plex Mono'">{{ decision.customBudgetFormatted }}</span>
+                </div>
+                <div style="color:#4B5563;font-size:10.5px;line-height:1.35;margin-bottom:2px"><b>Channels:</b> {{ decision.customChannelsFormatted }}</div>
+                <div style="color:#64748B;font-size:10px;line-height:1.3"><b>Note:</b> {{ decision.customNoteFormatted }}</div>
+              </div>
+            </sc-if>
             <sc-if value="{{ decision.open }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;flex-direction:column;gap:8px">
                 <button onClick="{{ onApprove }}" style="width:100%;font:700 12px/1 'Plus Jakarta Sans';color:#FFFFFF;background:#0E9F6E;border:0;border-radius:10px;padding:14px;cursor:pointer;transition:all .18s ease" style-hover="background:#0B8659">{{ decision.primary }}</button>
@@ -242,7 +262,6 @@ a:hover{color:#163398}
                   <button onClick="{{ onEdit }}" style="flex:1;font:700 11px/1 'Plus Jakarta Sans';color:#1F44D6;background:#FFFFFF;border:1px solid #D3DFFF;border-radius:10px;padding:12px 8px;cursor:pointer;transition:all .18s ease" style-hover="background:#EAF0FF">Change a detail</button>
                   <button onClick="{{ onDecline }}" style="flex:1;font:700 11px/1 'Plus Jakarta Sans';color:#C13A4C;background:#FFFFFF;border:1px solid #F6DDE1;border-radius:10px;padding:12px 8px;cursor:pointer;transition:all .18s ease" style-hover="background:#FDF2F4">Decline</button>
                 </div>
-                
               </div>
             </sc-if>
             <sc-if value="{{ decision.done }}" hint-placeholder-val="{{ true }}">
@@ -252,7 +271,10 @@ a:hover{color:#163398}
                   <span style="font:700 12px/1 'Plus Jakarta Sans';color:{{ decision.doneColor }}">{{ decision.doneTitle }}</span>
                 </div>
                 <div style="font:500 11px/1.55 'Plus Jakarta Sans';color:#5A6884">{{ decision.doneNote }}</div>
-                <button onClick="{{ onUndo }}" style="margin-top:11px;width:100%;font:700 11px/1 'Plus Jakarta Sans';color:#C13A4C;background:#FFFFFF;border:1px solid #F6DDE1;border-radius:9px;padding:11px;cursor:pointer" style-hover="background:#FDF2F4">{{ decision.undoLabel }}</button>
+                <div style="display:flex;gap:8px;margin-top:11px">
+                  <button onClick="{{ onEdit }}" style="flex:1;font:700 11px/1 'Plus Jakarta Sans';color:#1F44D6;background:#FFFFFF;border:1px solid #D3DFFF;border-radius:9px;padding:10px 6px;cursor:pointer" style-hover="background:#EAF0FF">Edit detail</button>
+                  <button onClick="{{ onUndo }}" style="flex:1;font:700 11px/1 'Plus Jakarta Sans';color:#C13A4C;background:#FFFFFF;border:1px solid #F6DDE1;border-radius:9px;padding:10px 6px;cursor:pointer" style-hover="background:#FDF2F4">{{ decision.undoLabel }}</button>
+                </div>
               </div>
             </sc-if>
           </div>
@@ -2039,7 +2061,8 @@ class Component extends DCLogic {
   }
   decide(kind) {
     const id = this.state.momentId;
-    const line = { approve: "You approved the " + this.m.brand + " call. It is going live now.", edit: "You changed a detail on the " + this.m.brand + " call, then approved it.", decline: "You declined the " + this.m.brand + " call. Your reason is on the record." }[kind];
+    const m = this.m;
+    const line = { approve: "You approved the " + m.brand + " call. It is going live now.", edit: "You changed a detail on the " + m.brand + " call, then approved it.", decline: "You declined the " + m.brand + " call. Your reason is on the record." }[kind];
     
     // Wire real decision execution to backend ledger
     const choiceMap = { approve: 'APPROVE_AUTOMATE', edit: 'APPROVE_OVERRIDE', decline: 'STAND_DOWN' };
@@ -2048,10 +2071,10 @@ class Component extends DCLogic {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         signalId: id,
-        brand: this.m.brand,
+        brand: m.brand,
         choice: choiceMap[kind] || 'APPROVE_AUTOMATE',
-        headline: this.m.title,
-        rationale: this.m.rationale || line
+        headline: m.title,
+        rationale: m.rationale || line
       })
     }).then(res => res.json()).then(data => {
       this.fetchLedgerData();
@@ -2062,14 +2085,83 @@ class Component extends DCLogic {
       feed: [{ text: line, t: "just now", color: kind === "decline" ? "#C13A4C" : "#0E9F6E" }].concat(s.feed),
       ledger: [{
         id: "record 00" + (488 + s.ledger.length - 3),
-        sig: this.m.ledgerEntry.sig,
-        verdict: kind === "decline" ? "Declined by you" : this.m.ledgerEntry.verdict,
-        score: this.m.ledgerEntry.score,
+        sig: m.ledgerEntry ? m.ledgerEntry.sig : (m.brand + " · " + m.title),
+        verdict: kind === "decline" ? "Declined by you" : (m.ledgerEntry ? m.ledgerEntry.verdict : "Approved"),
+        score: m.ledgerEntry ? m.ledgerEntry.score : String(m.score || 88),
         outcome: kind === "decline" ? "You overruled the system. Reason stored." : kind === "edit" ? "You edited, then approved. Change stored." : "You approved. Activation running.",
         color: kind === "decline" ? "#C13A4C" : "#0E9F6E", rowBg: "#F7FBF9"
       }].concat(s.ledger)
     }));
   }
+
+  decideWithDetails(kind, customDetails) {
+    const id = this.state.momentId;
+    const m = this.m;
+    if (customDetails) {
+      m.customChanges = customDetails;
+      if (customDetails.headline) m.title = customDetails.headline;
+      if (customDetails.ask) m.ask = customDetails.ask;
+      if (customDetails.budget) {
+        m.budget = customDetails.budget;
+        if (m.impact && m.impact[0]) m.impact[0].value = '₹' + Number(customDetails.budget).toLocaleString('en-IN');
+      }
+      if (customDetails.channels && customDetails.channels.length) {
+        m.channels = customDetails.channels.map(ch => ({
+          name: ch,
+          status: 'Ready',
+          slot: ch.includes('Blinkit') || ch.includes('Zepto') ? 'Dark Store Quick-Commerce' : 'Vertical 9:16 Feed',
+          caption: m.title,
+          meta: 'Custom channel allocation',
+          color: '#0E9F6E',
+          bg: '#E6F7F0'
+        }));
+      }
+    }
+    const budgetNum = customDetails?.budget ? Number(customDetails.budget).toLocaleString('en-IN') : '5,00,000';
+    const channelsStr = customDetails?.channels?.length ? customDetails.channels.join(', ') : 'Reels & Blinkit';
+    const line = kind === "edit"
+      ? `You customized ${m.brand} details (Budget: ₹${budgetNum} on ${channelsStr}) and approved.`
+      : `You approved ${m.brand} with customized details.`;
+
+    fetch('/api/decision/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        signalId: id,
+        brand: m.brand,
+        choice: kind === 'edit' ? 'APPROVE_OVERRIDE' : 'APPROVE_AUTOMATE',
+        headline: m.title,
+        rationale: customDetails?.note || m.rationale || line,
+        customChanges: customDetails || null,
+        budget: customDetails?.budget || null,
+        channels: customDetails?.channels || null
+      })
+    }).then(res => res.json()).then(data => {
+      this.fetchLedgerData();
+    }).catch(() => {});
+
+    this.setState(s => ({
+      decisions: { ...s.decisions, [id]: kind },
+      feed: [{ text: line, t: "just now", color: "#0E9F6E" }].concat(s.feed),
+      ledger: [{
+        id: "record 00" + (488 + s.ledger.length - 3),
+        sig: m.brand + " · " + m.title,
+        verdict: "Overridden by operator",
+        score: String(m.score || 88),
+        outcome: `Customized: Budget ₹${budgetNum} on ${channelsStr}. Note: ${customDetails?.note || 'Custom guardrails applied'}.`,
+        color: "#6A4CE0", rowBg: "#F7FBF9"
+      }].concat(s.ledger)
+    }));
+  }
+
+  openEditModal() {
+    if (window.openCcEditModal) {
+      window.openCcEditModal(this.state.momentId);
+    } else {
+      this.decide("edit");
+    }
+  }
+
   undo() {
     const id = this.state.momentId;
     this.setState(s => {
@@ -2529,19 +2621,25 @@ class Component extends DCLogic {
         stateColor: decided ? "#0E9F6E" : autoRun ? "#1F44D6" : "#B8770A",
         stateBg: decided ? "#E6F7F0" : autoRun ? "#EAF0FF" : "#FEF4E4",
         ask: decided
-          ? (decided === "decline" ? "You said no, and that is on the record" : "Your call is recorded")
+          ? (decided === "decline" ? "You said no, and that is on the record" : (decided === "edit" ? ("Custom details approved: " + m.title) : "Your call is recorded"))
           : autoRun ? "Nothing needed from you" : "Do we run this?",
         note: decided
           ? (decided === "decline"
               ? "Nothing went out. The case, the six views and your reason stay together so this can be argued with later."
-              : "Live now on the channels listed under where it runs. You can still pull it back from here.")
+              : (decided === "edit"
+                  ? ("Live with customized parameters: " + (m.customChanges?.channels?.join(', ') || 'Active channels') + ". Budget: ₹" + Number(m.customChanges?.budget || 500000).toLocaleString('en-IN') + ".")
+                  : "Live now on the channels listed under where it runs. You can still pull it back from here."))
           : autoRun
             ? "This type of call sits at level " + this.level + ", so it runs inside the rules you signed and simply tells you. You can stop it at any point."
             : m.verdict + " at a score of " + m.score + ". You can approve, change one detail first, or say no.",
+        hasCustomDetails: !!(m.customChanges),
+        customBudgetFormatted: m.customChanges ? ('₹' + Number(m.customChanges.budget || 500000).toLocaleString('en-IN')) : '',
+        customChannelsFormatted: m.customChanges && m.customChanges.channels ? m.customChanges.channels.join(', ') : '',
+        customNoteFormatted: m.customChanges ? (m.customChanges.note || 'Custom guardrails attached') : '',
         open: !decided,
         primary: autoRun ? "Acknowledge and let it run" : "Approve and go live",
         done: !!decided,
-        doneTitle: decided === "decline" ? "You said no" : decided === "edit" ? "Edited, then approved" : "Approved and live",
+        doneTitle: decided === "decline" ? "You said no" : decided === "edit" ? "Edited & Approved" : "Approved and live",
         doneMark: decided === "decline" ? "✕" : "✓",
         doneColor: decided === "decline" ? "#C13A4C" : "#0E9F6E",
         doneBd: decided === "decline" ? "#F6DDE1" : "#DCEFE6",
@@ -2556,7 +2654,8 @@ class Component extends DCLogic {
           : "Level two means the system may recommend but never act on its own. Raise it in the permissions tab and calls like this stop waiting for you."
       },
       onApprove: () => this.decide("approve"),
-      onEdit: () => this.decide("edit"),
+      onEdit: () => this.openEditModal(),
+      onOpenEditModal: () => this.openEditModal(),
       onDecline: () => this.decide("decline"),
       onUndo: () => this.undo(),
       feed: st.feed
@@ -2666,6 +2765,268 @@ class Component extends DCLogic {
     </div>
   </div>
 </div>
+
+<!-- Command Centre "Change a Detail" Custom Activation Builder Modal -->
+<div id="ccEditModal" style="display:none;position:fixed;inset:0;background:rgba(7,11,20,0.85);z-index:99999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);font-family:'Plus Jakarta Sans',sans-serif">
+  <div style="background:#FFFFFF;border:1px solid #DCE3F0;border-radius:14px;max-width:700px;width:100%;box-shadow:0 24px 60px rgba(14,27,51,0.35);overflow:hidden;animation:modalEnter 0.22s ease-out">
+    
+    <!-- Modal Header -->
+    <div style="padding:18px 24px;border-bottom:1px solid #E3E8F2;background:#F8FAFF;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:#1F44D6;color:#fff;font-weight:800;font-size:12px">✍️</span>
+          <b style="font-size:16px;color:#0E1B33" id="ccEditModalTitle">Change Activation Details</b>
+          <span id="ccEditBrandBadge" style="background:#E0EBFF;color:#1F44D6;font:700 10.5px/1 'IBM Plex Mono';padding:4px 8px;border-radius:4px">HUL Brand</span>
+        </div>
+        <div style="font-size:12px;color:#5A6884;margin-top:4px">Modify campaign copy, media channels, budget caps, or operational guardrails before approving.</div>
+      </div>
+      <button onclick="window.closeCcEditModal()" style="background:none;border:none;color:#8492AC;font-size:20px;cursor:pointer;padding:4px">✕</button>
+    </div>
+
+    <!-- Modal Form Body -->
+    <div style="padding:20px 24px;max-height:68vh;overflow-y:auto;display:flex;flex-direction:column;gap:16px">
+      
+      <!-- 1. Headline / Activation Hook -->
+      <div>
+        <label style="display:block;font-size:11.5px;font-weight:700;color:#0E1B33;margin-bottom:6px">ACTIVATION HEADLINE / HOOK</label>
+        <input type="text" id="ccEditHeadline" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;font-family:inherit;color:#0E1B33;background:#F8FAFC" placeholder="e.g. Tactical Response to Quick-Commerce Surge" />
+      </div>
+
+      <!-- 2. Tactical Copy & Ask -->
+      <div>
+        <label style="display:block;font-size:11.5px;font-weight:700;color:#0E1B33;margin-bottom:6px">CREATIVE / TACTICAL ASK</label>
+        <textarea id="ccEditAsk" rows="2" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:12.5px;font-family:inherit;color:#0E1B33;background:#F8FAFC;resize:vertical" placeholder="Describe the creative action, influencer script, or packaging call..."></textarea>
+      </div>
+
+      <!-- 3. Target Channels & Placements -->
+      <div>
+        <label style="display:block;font-size:11.5px;font-weight:700;color:#0E1B33;margin-bottom:6px">DEPLOYMENT CHANNELS & PLACEMENTS (CLICK TO TOGGLE)</label>
+        <div id="ccEditChannelsContainer" style="display:flex;flex-wrap:wrap;gap:8px">
+          <!-- Dynamically populated buttons -->
+        </div>
+      </div>
+
+      <!-- 4. Budget Allocation in INR -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <label style="font-size:11.5px;font-weight:700;color:#0E1B33">BUDGET ALLOCATION (INR ₹)</label>
+          <span id="ccEditRoleCapNote" style="font-size:11px;color:#64748B">Threshold: ₹25,00,000</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+          <button type="button" onclick="window.setCcEditBudget(50000)" class="budget-preset-btn" style="padding:5px 9px;border:1px solid #CBD5E1;background:#F1F5F9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#334155">₹50,000</button>
+          <button type="button" onclick="window.setCcEditBudget(200000)" class="budget-preset-btn" style="padding:5px 9px;border:1px solid #CBD5E1;background:#F1F5F9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#334155">₹2,00,000</button>
+          <button type="button" onclick="window.setCcEditBudget(500000)" class="budget-preset-btn" style="padding:5px 9px;border:1px solid #CBD5E1;background:#F1F5F9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#334155">₹5,00,000</button>
+          <button type="button" onclick="window.setCcEditBudget(1500000)" class="budget-preset-btn" style="padding:5px 9px;border:1px solid #CBD5E1;background:#F1F5F9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#334155">₹15,00,000</button>
+          <button type="button" onclick="window.setCcEditBudget(2500000)" class="budget-preset-btn" style="padding:5px 9px;border:1px solid #CBD5E1;background:#F1F5F9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#334155">₹25,00,000</button>
+        </div>
+        <div style="position:relative">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:700;color:#64748B;font-size:13px">₹</span>
+          <input type="number" id="ccEditBudgetValue" style="width:100%;box-sizing:border-box;padding:9px 12px 9px 28px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;font-family:'IBM Plex Mono',monospace;color:#0E1B33;background:#F8FAFC" placeholder="500000" />
+        </div>
+      </div>
+
+      <!-- 5. Operational Notes & Governance Rationale -->
+      <div>
+        <label style="display:block;font-size:11.5px;font-weight:700;color:#0E1B33;margin-bottom:6px">GOVERNANCE & COMPLIANCE GUARDRAIL NOTE</label>
+        <textarea id="ccEditNote" rows="2" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:12px;font-family:inherit;color:#0E1B33;background:#F8FAFC;resize:vertical" placeholder="e.g. Cap frequency to 3 views per user; enforce ASCI disclosure on all Reels; exclude storm-impacted coastal districts."></textarea>
+      </div>
+
+      <!-- 6. Regional Scope & SLA Window -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="display:block;font-size:11.5px;font-weight:700;color:#0E1B33;margin-bottom:6px">REGIONAL TARGETING</label>
+          <select id="ccEditRegion" style="width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #CBD5E1;border-radius:8px;font-size:12px;font-family:inherit;color:#0E1B33;background:#F8FAFC">
+            <option value="Pan-India">Pan-India (National)</option>
+            <option value="Tier-1 Metros">Tier-1 Metros (Mumbai, Delhi, Bengaluru, Kolkata, Chennai)</option>
+            <option value="South Region">South Region (Tamil Nadu, Karnataka, AP, Telangana, Kerala)</option>
+            <option value="North Region">North Region (UP, Punjab, Haryana, Rajasthan, Delhi-NCR)</option>
+            <option value="East Region">East Region (West Bengal, Odisha, Assam, Bihar)</option>
+            <option value="West Region">West Region (Maharashtra, Gujarat, Goa, MP)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11.5px;font-weight:700;color:#0E1B33;margin-bottom:6px">EXECUTION TIMEFRAME</label>
+          <select id="ccEditWindow" style="width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #CBD5E1;border-radius:8px;font-size:12px;font-family:inherit;color:#0E1B33;background:#F8FAFC">
+            <option value="2h 30m">⚡ Fast Tactical Window (2h 30m)</option>
+            <option value="6h 00m">Standard Execution (6h)</option>
+            <option value="24h 00m">24-Hour Campaign Burst</option>
+            <option value="48h 00m">Weekend Surge Activation</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="padding:16px 24px;background:#F8FAFF;border-top:1px solid #E3E8F2;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <button type="button" onclick="window.closeCcEditModal()" style="background:#FFFFFF;border:1px solid #CBD5E1;color:#64748B;padding:9px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">
+        Cancel
+      </button>
+      <div style="display:flex;gap:8px">
+        <button type="button" onclick="window.saveCcEditDraft()" style="background:#FFFFFF;border:1px solid #1F44D6;color:#1F44D6;padding:9px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">
+          💾 Save Changes as Draft
+        </button>
+        <button type="button" onclick="window.applyCcEditAndApprove()" style="background:#0E9F6E;border:none;color:#FFFFFF;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">
+          ⚡ Apply & Approve Live →
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let ccEditSelectedChannels = [];
+const ccAvailableChannels = [
+  "Instagram Reels",
+  "Blinkit 10-Min Dark Stores",
+  "Zepto Quick Commerce",
+  "YouTube Shorts",
+  "Swiggy Instamart",
+  "WhatsApp Business Commerce",
+  "Meta In-Feed Ads",
+  "Hotstar Cricket Live Stream"
+];
+
+window.openCcEditModal = function(momentId) {
+  const inst = window.ccInstance;
+  if (!inst) return;
+  const m = inst.m;
+  if (!m) return;
+
+  const modal = document.getElementById('ccEditModal');
+  if (!modal) return;
+
+  document.getElementById('ccEditModalTitle').innerText = "Change Details for " + (m.brand || "Moment");
+  document.getElementById('ccEditBrandBadge').innerText = m.brand || "HUL";
+  document.getElementById('ccEditHeadline').value = m.title || "";
+  document.getElementById('ccEditAsk').value = m.customChanges?.ask || m.ask || (m.concepts && m.concepts[0] ? m.concepts[0].copy : m.title);
+  
+  // Set budget
+  const defaultBudget = m.customChanges?.budget || (m.impact && m.impact[0] ? parseInt(m.impact[0].value.replace(/[^0-9]/g, '')) || 500000 : 500000);
+  document.getElementById('ccEditBudgetValue').value = defaultBudget;
+
+  // Set note
+  document.getElementById('ccEditNote').value = m.customChanges?.note || m.guardrail || m.rationale || "Ensure strict ASCI compliance and cap frequency to 3 per user across dark-store surge clusters.";
+
+  // Set channels
+  if (m.customChanges?.channels && m.customChanges.channels.length) {
+    ccEditSelectedChannels = [...m.customChanges.channels];
+  } else if (m.channels && m.channels.length) {
+    ccEditSelectedChannels = m.channels.map(c => c.name);
+  } else {
+    ccEditSelectedChannels = ["Instagram Reels", "Blinkit 10-Min Dark Stores", "YouTube Shorts"];
+  }
+
+  window.renderCcEditChannels();
+
+  // Show operator role threshold
+  const roleName = localStorage.getItem('next_operator_role') || 'Brand Manager';
+  const roleNote = document.getElementById('ccEditRoleCapNote');
+  if (roleNote) {
+    roleNote.innerText = `Active Role: ${roleName}`;
+  }
+
+  modal.style.display = 'flex';
+};
+
+window.closeCcEditModal = function() {
+  const modal = document.getElementById('ccEditModal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.renderCcEditChannels = function() {
+  const container = document.getElementById('ccEditChannelsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  ccAvailableChannels.forEach(ch => {
+    const isSelected = ccEditSelectedChannels.includes(ch);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerText = (isSelected ? '✓ ' : '+ ') + ch;
+    btn.style.padding = '6px 11px';
+    btn.style.borderRadius = '6px';
+    btn.style.fontSize = '11.5px';
+    btn.style.fontFamily = 'inherit';
+    btn.style.fontWeight = isSelected ? '700' : '600';
+    btn.style.cursor = 'pointer';
+    btn.style.transition = 'all 0.15s ease';
+    btn.style.border = isSelected ? '1px solid #1F44D6' : '1px solid #CBD5E1';
+    btn.style.background = isSelected ? '#EAF0FF' : '#FFFFFF';
+    btn.style.color = isSelected ? '#1F44D6' : '#475569';
+
+    btn.onclick = function() {
+      if (ccEditSelectedChannels.includes(ch)) {
+        ccEditSelectedChannels = ccEditSelectedChannels.filter(c => c !== ch);
+      } else {
+        ccEditSelectedChannels.push(ch);
+      }
+      window.renderCcEditChannels();
+    };
+
+    container.appendChild(btn);
+  });
+};
+
+window.setCcEditBudget = function(val) {
+  const el = document.getElementById('ccEditBudgetValue');
+  if (el) el.value = val;
+};
+
+window.getCcEditFormData = function() {
+  const headline = document.getElementById('ccEditHeadline')?.value.trim() || "";
+  const ask = document.getElementById('ccEditAsk')?.value.trim() || "";
+  const budget = parseInt(document.getElementById('ccEditBudgetValue')?.value) || 500000;
+  const note = document.getElementById('ccEditNote')?.value.trim() || "";
+  const region = document.getElementById('ccEditRegion')?.value || "Pan-India";
+  const windowVal = document.getElementById('ccEditWindow')?.value || "2h 30m";
+  const channels = ccEditSelectedChannels.length ? ccEditSelectedChannels : ["Instagram Reels", "Blinkit 10-Min Dark Stores"];
+
+  return { headline, ask, budget, note, region, windowVal, channels };
+};
+
+window.saveCcEditDraft = function() {
+  const data = window.getCcEditFormData();
+  const inst = window.ccInstance;
+  if (!inst) return;
+  const m = inst.m;
+  if (!m) return;
+
+  m.customChanges = data;
+  if (data.headline) m.title = data.headline;
+  if (data.ask) m.ask = data.ask;
+  if (data.budget && m.impact && m.impact[0]) {
+    m.impact[0].value = '₹' + Number(data.budget).toLocaleString('en-IN');
+  }
+  if (data.channels && data.channels.length) {
+    m.channels = data.channels.map(ch => ({
+      name: ch,
+      status: 'Ready',
+      slot: ch.includes('Blinkit') || ch.includes('Zepto') ? 'Dark Store Quick-Commerce' : 'Vertical 9:16 Feed',
+      caption: m.title,
+      meta: 'Custom channel allocation',
+      color: '#0E9F6E',
+      bg: '#E6F7F0'
+    }));
+  }
+
+  window.closeCcEditModal();
+
+  inst.setState(s => ({
+    feed: [{ text: `✍️ Change details saved as draft for ${m.brand}. Ready for sign-off.`, t: "just now", color: "#1F44D6" }].concat(s.feed)
+  }));
+};
+
+window.applyCcEditAndApprove = function() {
+  const data = window.getCcEditFormData();
+  const inst = window.ccInstance;
+  if (!inst) return;
+
+  window.closeCcEditModal();
+  inst.decideWithDetails('edit', data);
+};
+</script>
 
 <script>
 window.openCcRoleModal = function() {

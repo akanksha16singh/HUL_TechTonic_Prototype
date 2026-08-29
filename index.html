@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NEXT — Cultural Decision Infrastructure & AI War Room</title>
-<meta name="description" content="NEXT closes the distance between a live signal and a high-stakes brand decision with 7 autonomous specialist agents, 1 arbiter, and human decision rights.">
+<title>NEXT — Cultural War Room</title>
+<meta name="description" content="Cultural Decision Infrastructure for Hindustan Unilever featuring the Command Centre, War Room Cockpit, 7-Agent Specialist Mesh with Devil's Advocate, Governance Decision Rights Matrix, Cryptographic SHA-256 Outcome Ledger, and SQLite persistence.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -296,8 +296,11 @@
       <span>💡</span> Guided Walkthrough
     </button>
     <a href="/" class="active">Overview</a>
+    <a href="/moment-queue/">Moment Queue</a>
+    <a href="/scorecard/">Scorecard</a>
+    <a href="/decision-record/">Decision Record</a>
     <a href="/command-centre/">Command Centre</a>
-    <a href="/war-room/">War Room (Operator)</a>
+    <a href="/war-room/">War Room</a>
   </div>
 </nav>
 
@@ -616,9 +619,29 @@ let landingCountdown = 600;
 let activeQuery = null;
 let lastSearchResults = null;
 
+function sanitizeText(raw) {
+  if (!raw) return '';
+  let str = String(raw).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1');
+  // Strip HTML tags
+  str = str.replace(/<[^>]*>/g, ' ');
+  // Unescape standard entities then re-clean
+  str = str
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return str;
+}
+
 function escapeHtml(str) {
   if (!str) return '';
-  return String(str)
+  const clean = sanitizeText(str);
+  return clean
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

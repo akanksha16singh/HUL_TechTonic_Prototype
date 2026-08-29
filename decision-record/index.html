@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXT — Decision Record & Impact Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/nav.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #F8FAFC;
+  color: #0E1B33;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono { font-family: 'IBM Plex Mono', monospace; }
+
+.app-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+
+/* Breadcrumb & Navigation Sub-bar */
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8F0;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748B;
+}
+.breadcrumb a {
+  color: #1F44D6;
+  text-decoration: none;
+  font-weight: 600;
+}
+.breadcrumb a:hover { text-decoration: underline; }
+
+.action-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1E293B;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.action-share-btn:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+}
+
+/* Moment Header Strip */
+.decision-header-card {
+  background: #FFFFFF;
+  border: 1px solid #DCE3F0;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(14,27,51,0.04);
+}
+.decision-top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.status-pill-routed {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 11px;
+}
+
+/* SECTION 1: Approval Chain (Lowest Score Routes First) */
+.section-card {
+  background: #FFFFFF;
+  border: 1px solid #DCE3F0;
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(14,27,51,0.04);
+}
+.section-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0E1B33;
+}
+.section-subtitle {
+  font-size: 12px;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+/* Active Holding Focus Banner */
+.holding-focus-banner {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-left: 4px solid #D97706;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.holding-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.holding-user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #B45309;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+}
+.holding-banner-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #78350F;
+}
+.holding-banner-sub {
+  font-size: 11.5px;
+  color: #92400E;
+}
+
+/* Approval Chain Steps */
+.chain-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chain-step-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.15s ease;
+  flex-wrap: wrap;
+}
+.step-pending {
+  background: #FFFBEB;
+  border-color: #FCD34D;
+  box-shadow: 0 2px 8px rgba(217,119,6,0.1);
+}
+.step-completed {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+.step-queued {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  opacity: 0.7;
+}
+
+.step-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.step-rank-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.rank-pending { background: #F59E0B; color: #FFFFFF; }
+.rank-done { background: #10B981; color: #FFFFFF; }
+.rank-queued { background: #94A3B8; color: #FFFFFF; }
+
+.step-role-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0E1B33;
+}
+.step-role-owner {
+  font-size: 11.5px;
+  color: #64748B;
+}
+
+.step-state-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.state-pending { background: #FEF3C7; color: #92400E; }
+.state-done { background: #ECFDF5; color: #065F46; }
+.state-queued { background: #F1F5F9; color: #64748B; }
+
+.lapse-rule-box {
+  margin-top: 16px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-left: 3px solid #EF4444;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  color: #475569;
+}
+
+/* SECTION 2: Reversibility & Kill Switch Panel */
+.reversibility-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 840px) {
+  .reversibility-grid { grid-template-columns: 1fr; }
+}
+
+.undo-path-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 16px;
+}
+.undo-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0E1B33;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.undo-desc {
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.kill-switch-box {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.kill-btn {
+  background: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.kill-btn:hover {
+  background: #B91C1C;
+}
+
+/* SECTION 3: Realised Impact & Value Creation */
+.impact-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 1024px) {
+  .impact-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+  .impact-stats-grid { grid-template-columns: 1fr; }
+}
+
+.impact-metric-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.impact-metric-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.impact-metric-val {
+  font-size: 22px;
+  font-weight: 800;
+  font-family: 'IBM Plex Mono', monospace;
+  color: #0E1B33;
+  margin-bottom: 4px;
+}
+.impact-metric-sub {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #0E9F6E;
+  margin-bottom: 8px;
+}
+.impact-basis-note {
+  font-size: 10px;
+  color: #64748B;
+  line-height: 1.35;
+  border-top: 1px dashed #CBD5E1;
+  padding-top: 6px;
+  margin-top: auto;
+}
+
+/* Append-Only Ledger Block */
+.ledger-block-box {
+  background: #0E1B33;
+  color: #E2E8F0;
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  margin-bottom: 20px;
+}
+.ledger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+.ledger-field-row {
+  display: flex;
+  margin-bottom: 6px;
+}
+.ledger-field-label {
+  width: 140px;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+.ledger-field-val {
+  color: #FFFFFF;
+}
+
+/* Comparative Past Moment Memory */
+.memory-link-card {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.memory-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #166534;
+}
+.memory-desc {
+  font-size: 11.5px;
+  color: #15803D;
+  margin-top: 2px;
+}
+</style>
+</head>
+<body>
+
+<!-- Unified Sticky Navigation Bar -->
+<nav class="next-unified-bar" id="topNav">
+  <div style="display:flex;align-items:center;gap:14px">
+    <a href="/" style="font-weight:800;display:flex;align-items:center;gap:6px">
+      <span style="background:#1F44D6;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px;font-family:'IBM Plex Mono'">NEXT</span>
+      Decision System
+    </a>
+    <span class="next-badge-live"><span class="next-badge-dot"></span> 7-AGENT MESH ONLINE</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/">Overview</a>
+    <a href="/moment-queue/">Moment Queue</a>
+    <a href="/scorecard/">Scorecard</a>
+    <a href="/decision-record/" class="active">Decision Record</a>
+    <a href="/command-centre/">Command Centre</a>
+    <a href="/war-room/">War Room</a>
+  </div>
+</nav>
+
+<div class="app-wrapper">
+
+  <!-- Breadcrumb & Share Action -->
+  <div class="breadcrumb-bar">
+    <div class="breadcrumb">
+      <a href="/moment-queue/">Moment Queue</a>
+      <span>/</span>
+      <a href="/scorecard/">Scorecard (#sig-mumbai-monsoon-772)</a>
+      <span>/</span>
+      <span style="color:#1E293B;font-weight:600">Decision & Impact Record</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="action-share-btn" onclick="openDecisionShareModal()">
+        <span>📤</span> Share Decision Audit Pack
+      </button>
+    </div>
+  </div>
+
+  <!-- Moment Header Card -->
+  <div class="decision-header-card">
+    <div class="decision-top-meta">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="background:#1F44D6;color:#fff;font-weight:800;font-size:11px;padding:3px 8px;border-radius:4px">SURF EXCEL</span>
+        <span class="mono" style="font-size:11px;color:#64748B">ID: sig-mumbai-monsoon-772</span>
+        <span class="status-pill-routed">⚡ CASE ROUTED TO LEGAL COUNSEL</span>
+      </div>
+      <div class="mono" style="font-size:11.5px;color:#64748B">
+        Ingested 13:18 IST · Disagreement Spread: <b>48 pt</b>
+      </div>
+    </div>
+    <h1 style="font-size:18px;font-weight:800;color:#0E1B33;line-height:1.35">
+      Mumbai Heavy Rains: Spontaneous Commuter Rescue Chain on Local Trains Prompts Viral #DaagAccheHain Waterlogging Moments
+    </h1>
+  </div>
+
+  <!-- STACKED SECTION 1: The Approval Chain -->
+  <div class="section-card">
+    <div class="section-title-row">
+      <div>
+        <h2 class="section-title">1. The Approval Chain (Ordered Lowest Score First)</h2>
+        <div class="section-subtitle">Routing order prioritizes functions with lowest concurrence scores to resolve friction early</div>
+      </div>
+      <div class="mono" style="font-size:11.5px;color:#B45309;font-weight:700">
+        Active Stage: 1 of 4 (Legal & Regulatory)
+      </div>
+    </div>
+
+    <!-- Active Visual Focus: Who Holds This Right Now -->
+    <div class="holding-focus-banner" id="holdingBanner">
+      <div class="holding-banner-left">
+        <div class="holding-user-avatar">MS</div>
+        <div>
+          <div class="holding-banner-title">CURRENTLY WITH: Meenakshi Sundaram (Senior Legal & Regulatory Counsel, HUL)</div>
+          <div class="holding-banner-sub">
+            Action: Review railway transit safety disclaimer and clear ASCI Chapter 1.4 waiver for Reel cut 02.
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="text-align:right">
+          <div class="mono" style="font-size:13px;font-weight:800;color:#991B1B">⏳ 01h 14m Remaining</div>
+          <div style="font-size:10.5px;color:#78350F">Response Deadline: 14:48 IST</div>
+        </div>
+        <button onclick="simulateLegalApproval()" style="padding:8px 14px;background:#0E9F6E;color:#fff;border:none;border-radius:6px;font-weight:700;font-size:11.5px;cursor:pointer">
+          ✓ Simulate Legal Sign-Off
+        </button>
+      </div>
+    </div>
+
+    <!-- Chain Stages List -->
+    <div class="chain-steps-list">
+      
+      <!-- Stage 1: Legal (Score 38 - Lowest, Routes 1st) -->
+      <div class="chain-step-card step-pending" id="stage1Card">
+        <div class="step-left">
+          <div class="step-rank-badge rank-pending">1</div>
+          <div>
+            <div class="step-role-title">Legal & Regulatory Clearance (Risk Score: 38/100)</div>
+            <div class="step-role-owner">Owner: Meenakshi Sundaram (Senior Legal Counsel) · Routed at 13:24 IST</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="text-align:right">
+            <div class="mono" style="font-size:12px;font-weight:700;color:#92400E">Deadline: 14:48 IST</div>
+            <div style="font-size:10.5px;color:#64748B">Time Remaining: 01h 14m</div>
+          </div>
+          <span class="step-state-badge state-pending" id="stage1State">PENDING ACTION</span>
+        </div>
+      </div>
+
+      <!-- Stage 2: Finance (Score 68 - Routes 2nd) -->
+      <div class="chain-step-card step-queued" id="stage2Card">
+        <div class="step-left">
+          <div class="step-rank-badge rank-queued">2</div>
+          <div>
+            <div class="step-role-title">Finance & Spend Allocation (Commercial Score: 68/100)</div>
+            <div class="step-role-owner">Owner: Rajesh Iyer (Home Care Category Finance Controller) · Capped Budget: ₹2,40,000</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="text-align:right">
+            <div class="mono" style="font-size:12px;color:#64748B">Queued behind Legal</div>
+            <div style="font-size:10.5px;color:#94A3B8">Deadline: 15:15 IST</div>
+          </div>
+          <span class="step-state-badge state-queued" id="stage2State">QUEUED</span>
+        </div>
+      </div>
+
+      <!-- Stage 3: Media Operations (Score 74 - Routes 3rd) -->
+      <div class="chain-step-card step-queued" id="stage3Card">
+        <div class="step-left">
+          <div class="step-rank-badge rank-queued">3</div>
+          <div>
+            <div class="step-role-title">Media & Dark-Store Channel Commit (Media Score: 74/100)</div>
+            <div class="step-role-owner">Owner: Ananya Sen (Performance Media Lead) · Channels: Reels + Blinkit Intercept</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="text-align:right">
+            <div class="mono" style="font-size:12px;color:#64748B">Queued behind Finance</div>
+            <div style="font-size:10.5px;color:#94A3B8">Deadline: 15:30 IST</div>
+          </div>
+          <span class="step-state-badge state-queued" id="stage3State">QUEUED</span>
+        </div>
+      </div>
+
+      <!-- Stage 4: Brand Manager (Initial Triage Completed) -->
+      <div class="chain-step-card step-completed">
+        <div class="step-left">
+          <div class="step-rank-badge rank-done">✓</div>
+          <div>
+            <div class="step-role-title">Brand Manager Initial Triage & Case Assembly (Brand Score: 82/100)</div>
+            <div class="step-role-owner">Owner: Rahul Mehta (Senior Brand Manager, Surf Excel) · Signed at 13:22 IST</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div class="mono" style="font-size:11.5px;color:#065F46">Completed in 4.2 mins</div>
+          <span class="step-state-badge state-done">ROUTED</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- The Lapse Rule -->
+    <div class="lapse-rule-box">
+      <b>The Lapse Rule:</b> If Legal sign-off is not received within the 90-minute SLA window (by 14:48 IST), this activation <b>automatically lapses to STAND DOWN</b>. Cultural relevance decays on an exponential curve; late execution without legal clearance exposes the enterprise to severe reputational hazard with zero upside.
+    </div>
+  </div>
+
+  <!-- STACKED SECTION 2: Reversibility Panel & Kill Switch -->
+  <div class="section-card">
+    <div class="section-title-row">
+      <div>
+        <h2 class="section-title">2. The Reversibility Panel & Governance Controls</h2>
+        <div class="section-subtitle">Declared retraction pathways and emergency halt mechanisms</div>
+      </div>
+      <div class="mono" style="font-size:11.5px;color:#1F44D6;font-weight:700">
+        Permission Level 2: Human Sign-Off Enforced
+      </div>
+    </div>
+
+    <div class="reversibility-grid">
+      
+      <div class="undo-path-box">
+        <div class="undo-title">
+          <span>🔄</span> Declared Undo Path (Plain Language)
+        </div>
+        <div class="undo-desc">
+          If post-launch sentiment shifts negative (&gt;15% adverse mentions) or railway authorities issue guidance, the single-click retraction trigger executes within <b>120 seconds</b>:
+          <ul style="margin-left:18px;margin-top:6px;font-size:11.5px;color:#475569">
+            <li>Meta Ads Manager API pauses all active ad sets across Mumbai MMR</li>
+            <li>Blinkit & Zepto Dark Store promotional search bids automatically zeroed</li>
+            <li>Organic creator assets set to unlisted status via creator marketplace API</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="kill-switch-box">
+        <div>
+          <div class="undo-title" style="color:#991B1B">
+            <span>🛑</span> Emergency Kill Switch
+          </div>
+          <div style="font-size:11.5px;color:#7F1D1D;line-height:1.4">
+            Authorized for Brand Manager, Legal Counsel, or Media Lead. Immediately halts all active ad deliveries and dark store promotions. Irreversible national commitments (e.g. TV spots) are capped at ₹0.
+          </div>
+        </div>
+        <button class="kill-btn" onclick="executeEmergencyKillSwitch()">
+          <span>⚠️</span> ENGAGE EMERGENCY KILL SWITCH
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STACKED SECTION 3: Realised Impact & Value Creation Record -->
+  <div class="section-card">
+    <div class="section-title-row">
+      <div>
+        <h2 class="section-title">3. Realised Impact & Value Creation Record</h2>
+        <div class="section-subtitle">Post-routing telemetry, financial attribution, and operational time recovery</div>
+      </div>
+      <div class="mono" style="font-size:11.5px;color:#0E9F6E;font-weight:700">
+        ROI Multiplier: 7.75x PEV
+      </div>
+    </div>
+
+    <!-- 4 Stacked Metric Cards with Small Print Calculation Basis -->
+    <div class="impact-stats-grid">
+      
+      <!-- Metric 1: Cost vs Budget -->
+      <div class="impact-metric-card">
+        <div class="impact-metric-label">Cost Against Budget</div>
+        <div class="impact-metric-val">₹2,40,000</div>
+        <div class="impact-metric-sub">48% of ₹5.0L Cap Used</div>
+        <div class="impact-basis-note">
+          <b>Calculation Basis:</b> Live API telemetry from Meta Ads Manager + Blinkit Dark Store sponsored SKU search bids in Mumbai MMR.
+        </div>
+      </div>
+
+      <!-- Metric 2: Reach & PEV -->
+      <div class="impact-metric-card">
+        <div class="impact-metric-label">Earned Media Value (PEV)</div>
+        <div class="impact-metric-val">₹18,60,000</div>
+        <div class="impact-metric-sub">1.42M Verified Reach</div>
+        <div class="impact-basis-note">
+          <b>Calculation Basis:</b> Nielsen FMCG CPM benchmark (₹120/1k verified impressions) + organic UGC share multiplier (3.4x viral coefficient).
+        </div>
+      </div>
+
+      <!-- Metric 3: Functional Hours Saved -->
+      <div class="impact-metric-card">
+        <div class="impact-metric-label">Functional Hours Saved</div>
+        <div class="impact-metric-val">18.5 Hours</div>
+        <div class="impact-metric-sub">1.2h Triage vs 24h Baseline</div>
+        <div class="impact-basis-note">
+          <b>Calculation Basis:</b> Time-study tracking: eliminates 6 cross-functional review meetings and 14 email chains via unified case assembly.
+        </div>
+      </div>
+
+      <!-- Metric 4: Signal to Live Time -->
+      <div class="impact-metric-card">
+        <div class="impact-metric-label">Signal-to-Live Speed</div>
+        <div class="impact-metric-val">44 Minutes</div>
+        <div class="impact-metric-sub">vs. 14-Day Historical Sprint</div>
+        <div class="impact-basis-note">
+          <b>Calculation Basis:</b> Delta between native RSS signal ingest (13:18 IST) and first verified ad delivery impression (14:02 IST).
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Append-Only Cryptographic Ledger Entry -->
+    <div class="ledger-block-box">
+      <div class="ledger-header">
+        <span style="font-weight:700;color:#38BDF8">⛓️ APPEND-ONLY DECISION LEDGER · BLOCK 00489</span>
+        <span style="color:#94A3B8">SEALED AT 14:02:18 IST</span>
+      </div>
+      <div class="ledger-field-row">
+        <span class="ledger-field-label">DECISION:</span>
+        <span class="ledger-field-val" style="color:#34D399;font-weight:700">APPROVE_OVERRIDE_WITH_LEGAL_WAIVER</span>
+      </div>
+      <div class="ledger-field-row">
+        <span class="ledger-field-label">ACTORS:</span>
+        <span class="ledger-field-val">Meenakshi Sundaram [Legal] & Rahul Mehta [Brand Manager]</span>
+      </div>
+      <div class="ledger-field-row">
+        <span class="ledger-field-label">RECORDED DISSENT:</span>
+        <span class="ledger-field-val">Legal flagged track safety (ASCI Ch 1.4); mandatory 3s safety disclaimer attached to creative cut.</span>
+      </div>
+      <div class="ledger-field-row">
+        <span class="ledger-field-label">OBSERVED OUTCOME:</span>
+        <span class="ledger-field-val">1.42M impressions, zero regulatory notices, 88% positive sentiment index.</span>
+      </div>
+      <div class="ledger-field-row">
+        <span class="ledger-field-label">BLOCK HASH:</span>
+        <span class="ledger-field-val" style="color:#93C5FD">0x7f8a92b3c104e7f129d48b6c00827361a8f94e2b01c74d89aef027</span>
+      </div>
+    </div>
+
+    <!-- Comparative Memory Link -->
+    <div class="memory-link-card">
+      <div>
+        <div class="memory-title">🧠 Organizational Memory Link: July 2025 Monsoon Commuter Campaign (#MonsoonClean)</div>
+        <div class="memory-desc">
+          Similar waterlogging solidarity event in Mumbai. Earned ₹14.2L PEV with zero ASCI notices after Legal stipulated disclaimer on commuter footage.
+        </div>
+      </div>
+      <a href="/scorecard/" style="font-size:11.5px;font-weight:700;color:#166534;text-decoration:none">
+        View Historical Case →
+      </a>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Share Modal -->
+<div id="decisionShareModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.75);backdrop-filter:blur(4px);z-index:99999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:14px;max-width:640px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.25);overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;background:#F8FAFC">
+      <b style="font-size:14px;color:#0E1B33">📤 Share Decision & Impact Audit Pack</b>
+      <button onclick="closeDecisionShareModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#64748B">✕</button>
+    </div>
+    <div style="padding:20px">
+      <div style="font-size:12px;color:#475569;margin-bottom:10px">Cryptographically verifiable decision and impact memo for executive review:</div>
+      <div id="decisionShareBox" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#334155;white-space:pre-wrap;max-height:220px;overflow-y:auto">
+[NEXT DECISION AUDIT MEMO] Block 00489
+• Brand: Surf Excel · Campaign: Mumbai Dadar Commuter Rescue (#DaagAccheHain)
+• Sign-Off Chain: Legal Waiver Cleared (MS) → Finance Budget Approved (RI) → Media Dispatched (AS)
+• Reversibility: Level 2 | 120s Dark Store & Meta Retraction Verified
+• Realised Impact:
+  - Spend: ₹2,40,000 / ₹5,00,000 (48% cap utilization)
+  - Earned Media Value: ₹18,60,000 (7.75x ROI on spend)
+  - Assembly Hours Saved: 18.5 hours vs 24h baseline
+  - Ingest-to-Live: 44 minutes (vs 14-day sprint)
+• Cryptographic Ledger Hash: 0x7f8a92b3c104e7f129d48b...
+      </div>
+    </div>
+    <div style="padding:14px 20px;background:#F8FAFC;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center">
+      <button onclick="copyDecisionMemo()" style="padding:8px 14px;border:1px solid #1F44D6;background:#EFF6FF;color:#1F44D6;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">
+        📋 Copy Audit Memo
+      </button>
+      <button onclick="closeDecisionShareModal()" style="padding:8px 16px;border:none;background:#0E1B33;color:#fff;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="/shared/statusBar.js"></script>
+<script src="/shared/aiDrawer.js"></script>
+<script>
+function simulateLegalApproval() {
+  document.getElementById('stage1Card').className = 'chain-step-card step-completed';
+  document.getElementById('stage1State').className = 'step-state-badge state-done';
+  document.getElementById('stage1State').innerText = 'APPROVED WITH WAIVER';
+
+  document.getElementById('stage2Card').className = 'chain-step-card step-pending';
+  document.getElementById('stage2State').className = 'step-state-badge state-pending';
+  document.getElementById('stage2State').innerText = 'PENDING SIGN-OFF';
+
+  document.getElementById('holdingBanner').style.background = '#EFF6FF';
+  document.getElementById('holdingBanner').style.borderColor = '#BFDBFE';
+  document.getElementById('holdingBanner').style.borderLeftColor = '#1F44D6';
+  document.getElementById('holdingBanner').innerHTML = `
+    <div class="holding-banner-left">
+      <div class="holding-user-avatar" style="background:#1F44D6">RI</div>
+      <div>
+        <div class="holding-banner-title" style="color:#1E3A8A">CURRENTLY WITH: Rajesh Iyer (Category Finance Controller, HUL)</div>
+        <div class="holding-banner-sub" style="color:#1E40AF">Action: Confirm ₹2,40,000 spend authorization for quick-commerce and social ad sets.</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="mono" style="font-size:13px;font-weight:800;color:#0E9F6E">✓ Legal Waiver Sealed</div>
+      <div style="font-size:10.5px;color:#64748B">Finance SLA: 25 mins</div>
+    </div>
+  `;
+
+  alert("Legal Waiver Signed!\n\nMeenakshi Sundaram approved railway safety disclaimer waiver. Case advanced to Category Finance Controller (Rajesh Iyer).");
+}
+
+function executeEmergencyKillSwitch() {
+  if (confirm("ARE YOU SURE YOU WANT TO ENGAGE THE EMERGENCY KILL SWITCH?\n\nThis will immediately send API retraction calls to Meta Ads Manager, Blinkit dark stores, and Zepto search placements within 120 seconds.")) {
+    alert("🛑 EMERGENCY KILL SWITCH ENGAGED\n\n• Meta ad sets paused across Mumbai MMR\n• Blinkit dark store search intercepts zeroed\n• Retraction logged to cryptographic ledger Block 00490");
+  }
+}
+
+function openDecisionShareModal() {
+  document.getElementById('decisionShareModal').style.display = 'flex';
+}
+function closeDecisionShareModal() {
+  document.getElementById('decisionShareModal').style.display = 'none';
+}
+function copyDecisionMemo() {
+  const text = document.getElementById('decisionShareBox').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Decision audit memo copied to clipboard!");
+  }).catch(() => {
+    alert("Copied!");
+  });
+}
+</script>
+</body>
+</html>

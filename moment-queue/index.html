@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXT — Moment Queue (Triage Intake Pipeline)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/nav.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #F8FAFC;
+  color: #0E1B33;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono { font-family: 'IBM Plex Mono', monospace; }
+
+.app-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+
+/* Breadcrumb & Navigation Sub-bar */
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8F0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Authority Banner */
+.authority-banner {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-left: 4px solid #1F44D6;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.authority-text {
+  font-size: 12px;
+  color: #1E3A8A;
+  line-height: 1.4;
+}
+.authority-text b { color: #0E1B33; }
+
+/* Ingestion Funnel Stats Card */
+.funnel-stats-hero {
+  background: #FFFFFF;
+  border: 1px solid #DCE3F0;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(14,27,51,0.04);
+}
+.funnel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .funnel-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 540px) {
+  .funnel-grid { grid-template-columns: 1fr; }
+}
+
+.funnel-stat-box {
+  border-right: 1px solid #E2E8F0;
+  padding-right: 14px;
+}
+.funnel-stat-box:last-child {
+  border-right: none;
+}
+.funnel-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.funnel-stat-num {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: 'IBM Plex Mono', monospace;
+  color: #0E1B33;
+}
+.funnel-stat-sub {
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+/* Queue List */
+.queue-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.queue-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0E1B33;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sort-indicator-badge {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.moment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Moment Card */
+.moment-queue-card {
+  background: #FFFFFF;
+  border: 1px solid #DCE3F0;
+  border-radius: 12px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 3px rgba(14,27,51,0.03);
+  transition: all 0.18s ease;
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.moment-queue-card:hover {
+  border-color: #1F44D6;
+  box-shadow: 0 4px 14px rgba(31,68,214,0.08);
+  transform: translateY(-1px);
+}
+.moment-queue-card.urgent-card {
+  border-left: 4px solid #EF4444;
+}
+.moment-queue-card.declined-card {
+  border-left: 4px solid #64748B;
+  background: #F8FAFC;
+  opacity: 0.92;
+}
+
+.card-meta-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.brand-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+.brand-surf { background: #1F44D6; color: #FFFFFF; }
+.brand-dove { background: #0E7490; color: #FFFFFF; }
+.brand-redlabel { background: #B91C1C; color: #FFFFFF; }
+.brand-kwality { background: #D97706; color: #FFFFFF; }
+.brand-pureit { background: #475569; color: #FFFFFF; }
+.brand-vim { background: #15803D; color: #FFFFFF; }
+
+.timer-pill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.timer-urgent { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+.timer-medium { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+.timer-normal { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+
+.moment-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0E1B33;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.card-details-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12px;
+  color: #64748B;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.spread-indicator-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+.spread-high { background: #FFF1F2; color: #BE123C; border: 1px solid #FFE4E6; }
+.spread-moderate { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+.spread-tight { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+
+.declined-reason-box {
+  margin-top: 10px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.action-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1E293B;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.action-share-btn:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+}
+</style>
+</head>
+<body>
+
+<!-- Unified Sticky Navigation Bar -->
+<nav class="next-unified-bar" id="topNav">
+  <div style="display:flex;align-items:center;gap:14px">
+    <a href="/" style="font-weight:800;display:flex;align-items:center;gap:6px">
+      <span style="background:#1F44D6;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px;font-family:'IBM Plex Mono'">NEXT</span>
+      Decision System
+    </a>
+    <span class="next-badge-live"><span class="next-badge-dot"></span> 7-AGENT MESH ONLINE</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="/">Overview</a>
+    <a href="/moment-queue/" class="active">Moment Queue</a>
+    <a href="/scorecard/">Scorecard</a>
+    <a href="/decision-record/">Decision Record</a>
+    <a href="/command-centre/">Command Centre</a>
+    <a href="/war-room/">War Room</a>
+  </div>
+</nav>
+
+<div class="app-wrapper">
+
+  <!-- Header Sub-bar -->
+  <div class="header-bar">
+    <div>
+      <h1 style="font-size:18px;font-weight:800;color:#0E1B33">Cultural Moment Intake Queue</h1>
+      <div style="font-size:12px;color:#64748B">Live triage pipeline for brand managers and functional leads across Hindustan Unilever brands</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="action-share-btn" onclick="openQueueShareModal()">
+        <span>📤</span> Share Queue Summary
+      </button>
+    </div>
+  </div>
+
+  <!-- Division of Authority Notice -->
+  <div class="authority-banner">
+    <div class="authority-text">
+      <b>Triage Mandate:</b> NEXT does not make decisions. It assembles the case and filters 99.9% of cultural noise. Brand managers triage whether a moment is worth organizational attention. <b>Final approval always belongs to the function that owns the consequence</b> (Legal clears claims, Finance approves spend, Media commits buys). <b>Declining is a first-class recorded outcome</b>, not a failure state.
+    </div>
+  </div>
+
+  <!-- Ingestion Funnel Stats Card -->
+  <div class="funnel-stats-hero">
+    <div class="funnel-grid">
+      <div class="funnel-stat-box">
+        <div class="funnel-stat-label">Raw Signals Ingested</div>
+        <div class="funnel-stat-num">14,820</div>
+        <div class="funnel-stat-sub">Across 42 RSS feeds, social velocity sensors & news wires</div>
+      </div>
+      <div class="funnel-stat-box">
+        <div class="funnel-stat-label">Filtered by Auto-Rules</div>
+        <div class="funnel-stat-num" style="color:#64748B">14,812</div>
+        <div class="funnel-stat-sub">Eliminated for low velocity, brand toxicity, or zero FMCG relevance</div>
+      </div>
+      <div class="funnel-stat-box">
+        <div class="funnel-stat-label">Surfaced for Human Triage</div>
+        <div class="funnel-stat-num" style="color:#1F44D6">8 Moments</div>
+        <div class="funnel-stat-sub">99.95% noise reduction · High-velocity brand opportunities</div>
+      </div>
+      <div class="funnel-stat-box">
+        <div class="funnel-stat-label">Recorded Stand Downs</div>
+        <div class="funnel-stat-num" style="color:#C13A4C">3 Declined</div>
+        <div class="funnel-stat-sub">Zero spend wasted · Recorded in immutable governance ledger</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Queue Header & Sort Mode -->
+  <div class="queue-header-row">
+    <div class="queue-title">
+      <span>⚡ Active Moments Awaiting Triage</span>
+      <span class="mono" style="font-size:12px;color:#64748B">(Ordered by Urgency Against Closing Window)</span>
+    </div>
+    <div class="sort-indicator-badge">
+      ⏱️ Sorted by: Closing Window Urgency (Fastest Expiry First)
+    </div>
+  </div>
+
+  <!-- Moment List -->
+  <div class="moment-list">
+
+    <!-- Moment 1: Surf Excel (Primary Seed Moment) -->
+    <a href="/scorecard/?moment=sig-mumbai-monsoon-772" class="moment-queue-card urgent-card">
+      <div class="card-meta-line">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="brand-pill brand-surf">SURF EXCEL</span>
+          <span style="font-size:11px;font-weight:600;color:#64748B">Fabric Cleaning & Home Care</span>
+          <span class="mono" style="font-size:11px;color:#94A3B8">#sig-mumbai-monsoon-772</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="timer-pill timer-urgent">⏳ CLOSES IN 01h 14m</span>
+          <span class="spread-indicator-pill spread-high">⚠️ Spread: 38 — 86 (48 pt)</span>
+        </div>
+      </div>
+
+      <div class="moment-card-title">
+        Mumbai Heavy Rains: Spontaneous Commuter Rescue Chain on Local Trains Prompts Viral #DaagAccheHain Waterlogging Moments
+      </div>
+
+      <div class="card-details-row">
+        <div>
+          <b>Source:</b> The Indian Express (Mumbai Metro) · <b>Ingested:</b> 34m ago (13:18 IST)
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span><b>Velocity:</b> <span class="mono" style="color:#0E9F6E;font-weight:700">94 / 100</span></span>
+          <span><b>Brand Fit:</b> <span class="mono" style="color:#1F44D6;font-weight:700">98%</span></span>
+          <span style="color:#1F44D6;font-weight:700">Open Scorecard →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Moment 2: Kwality Wall's -->
+    <a href="/scorecard/?moment=sig-delhi-heat-881" class="moment-queue-card">
+      <div class="card-meta-line">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="brand-pill brand-kwality">KWALITY WALL'S</span>
+          <span style="font-size:11px;font-weight:600;color:#64748B">Ice Cream & Frozen Desserts</span>
+          <span class="mono" style="font-size:11px;color:#94A3B8">#sig-delhi-heat-881</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="timer-pill timer-medium">⏳ CLOSES IN 02h 20m</span>
+          <span class="spread-indicator-pill spread-moderate">Spread: 64 — 88 (24 pt)</span>
+        </div>
+      </div>
+
+      <div class="moment-card-title">
+        NCR 43°C Temperature Spike: Afternoon Commute Ice-Lolly Craving Surges 3.2x on Blinkit & Swiggy Instamart
+      </div>
+
+      <div class="card-details-row">
+        <div>
+          <b>Source:</b> IMD Weather Alert & Quick Commerce Telemetry · <b>Ingested:</b> 1h 10m ago
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span><b>Velocity:</b> <span class="mono" style="color:#0E9F6E;font-weight:700">88 / 100</span></span>
+          <span><b>Brand Fit:</b> <span class="mono" style="color:#1F44D6;font-weight:700">94%</span></span>
+          <span style="color:#1F44D6;font-weight:700">Open Scorecard →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Moment 3: Brooke Bond Red Label -->
+    <a href="/scorecard/?moment=sig-chai-charcha-904" class="moment-queue-card">
+      <div class="card-meta-line">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="brand-pill brand-redlabel">BROOKE BOND RED LABEL</span>
+          <span style="font-size:11px;font-weight:600;color:#64748B">Tea & Beverages</span>
+          <span class="mono" style="font-size:11px;color:#94A3B8">#sig-chai-charcha-904</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="timer-pill timer-normal">⏳ CLOSES IN 04h 45m</span>
+          <span class="spread-indicator-pill spread-tight">Spread: 72 — 85 (13 pt)</span>
+        </div>
+      </div>
+
+      <div class="moment-card-title">
+        Viral LinkedIn & X Dialogue on "Chai Break Reconnecting Hybrid Work Colleagues" After Monsoon Cloudburst in Bengaluru
+      </div>
+
+      <div class="card-details-row">
+        <div>
+          <b>Source:</b> X India Trending & LinkedIn News Desk · <b>Ingested:</b> 2h 05m ago
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span><b>Velocity:</b> <span class="mono" style="color:#0E9F6E;font-weight:700">76 / 100</span></span>
+          <span><b>Brand Fit:</b> <span class="mono" style="color:#1F44D6;font-weight:700">91%</span></span>
+          <span style="color:#1F44D6;font-weight:700">Open Scorecard →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Moment 4: Dove -->
+    <a href="/scorecard/?moment=sig-dove-filter-912" class="moment-queue-card">
+      <div class="card-meta-line">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="brand-pill brand-dove">DOVE</span>
+          <span style="font-size:11px;font-weight:600;color:#64748B">Personal Care & Beauty</span>
+          <span class="mono" style="font-size:11px;color:#94A3B8">#sig-dove-filter-912</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="timer-pill timer-normal">⏳ CLOSES IN 06h 30m</span>
+          <span class="spread-indicator-pill spread-tight">Spread: 75 — 89 (14 pt)</span>
+        </div>
+      </div>
+
+      <div class="moment-card-title">
+        Gen-Z Social Backlash Against "Hyper-Real AI Beauty Filters" Gains Momentum on Campus Feeds
+      </div>
+
+      <div class="card-details-row">
+        <div>
+          <b>Source:</b> Instagram & YouTube Shorts Pulse · <b>Ingested:</b> 3h 15m ago
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span><b>Velocity:</b> <span class="mono" style="color:#0E9F6E;font-weight:700">82 / 100</span></span>
+          <span><b>Brand Fit:</b> <span class="mono" style="color:#1F44D6;font-weight:700">96%</span></span>
+          <span style="color:#1F44D6;font-weight:700">Open Scorecard →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Moment 5: SYSTEM DECLINED / RECORDED STAND DOWN (First-Class Outcome) -->
+    <div class="moment-queue-card declined-card">
+      <div class="card-meta-line">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="brand-pill brand-pureit">PUREIT (DECLINED)</span>
+          <span style="font-size:11px;font-weight:600;color:#64748B">Water Purification</span>
+          <span class="mono" style="font-size:11px;color:#94A3B8">#sig-pureit-water-declined</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="background:#FEE2E2;color:#991B1B;font-size:11px;font-weight:800;padding:3px 8px;border-radius:4px">🛑 STOOD DOWN / DECLINED</span>
+          <span style="font-size:11px;color:#64748B">Zero Spend Wasted</span>
+        </div>
+      </div>
+
+      <div class="moment-card-title" style="color:#475569;text-decoration:line-through">
+        Sensationalized Social Media Claim Regarding Municipal Tap Water Contamination in Whitefield, Bengaluru
+      </div>
+
+      <div class="declined-reason-box">
+        <b>Declined by Autonomous Arbiter Mesh & Policy Rules:</b> Unsubstantiated third-party claims violate ASCI Code Chapter 1.1 (Truthful Claims) and HUL Responsible Marketing Code. Reacting would promote alarmist health panic. Case closed with <b>₹0 budget spent</b> and full rationale recorded into immutable governance ledger (Block 00486).
+      </div>
+
+      <div class="card-details-row" style="margin-top:8px">
+        <div>
+          <b>Outcome:</b> Brand equity protected · Regulatory notice averted · Mesh trained on false panic pattern
+        </div>
+        <div class="mono" style="font-size:11px;color:#64748B">
+          Recorded: 11:42 IST
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Share Queue Modal -->
+<div id="queueShareModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.75);backdrop-filter:blur(4px);z-index:99999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:14px;max-width:620px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.25);overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;background:#F8FAFC">
+      <b style="font-size:14px;color:#0E1B33">📤 Share Morning Triage Queue Pack</b>
+      <button onclick="closeQueueShareModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#64748B">✕</button>
+    </div>
+    <div style="padding:20px">
+      <div style="font-size:12px;color:#475569;margin-bottom:10px">Executive summary of active cultural moments ready to be dispatched to cross-functional leadership:</div>
+      <div id="queueShareSummaryBox" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#334155;white-space:pre-wrap;max-height:220px;overflow-y:auto">
+[NEXT CULTURAL INTAKE DISPATCH] 2026-08-29
+• Signals Ingested: 14,820 | Filtered: 14,812 | Surfaced: 8 (99.95% noise reduction)
+• #1 URGENT: Surf Excel · Mumbai Dadar Commuter Rescue (#DaagAccheHain) | Window: 01h 14m | Spread: 48 pt
+• #2 HIGH: Kwality Wall's · NCR 43°C Heatwave Surge | Window: 02h 20m | Spread: 24 pt
+• #3 MEDIUM: Brooke Bond · Hybrid Work Chai Reconnect | Window: 04h 45m | Spread: 13 pt
+• RECORDED STAND DOWN: Pureit unverified water panic stood down at ₹0 spend under ASCI Chapter 1.1
+      </div>
+    </div>
+    <div style="padding:14px 20px;background:#F8FAFC;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center">
+      <button onclick="copyQueueSummary()" style="padding:8px 14px;border:1px solid #1F44D6;background:#EFF6FF;color:#1F44D6;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">
+        📋 Copy Dispatch Brief
+      </button>
+      <button onclick="closeQueueShareModal()" style="padding:8px 16px;border:none;background:#0E1B33;color:#fff;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="/shared/statusBar.js"></script>
+<script src="/shared/aiDrawer.js"></script>
+<script>
+function openQueueShareModal() {
+  document.getElementById('queueShareModal').style.display = 'flex';
+}
+function closeQueueShareModal() {
+  document.getElementById('queueShareModal').style.display = 'none';
+}
+function copyQueueSummary() {
+  const text = document.getElementById('queueShareSummaryBox').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Queue summary copied to clipboard!");
+  }).catch(() => {
+    alert("Copied!");
+  });
+}
+</script>
+</body>
+</html>

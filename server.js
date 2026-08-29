@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import initSqlJs from 'sql.js';
 import { GoogleGenAI } from '@google/genai';
-import { fetchRssFeed, cleanUrl, computeContentHash, normalizeTitle, RSS_FEEDS_BY_CATEGORY, CORE_NEWS_FEEDS, searchRssFeedsForKeyword } from './shared/rssIngest.js';
+import { fetchRssFeed, cleanUrl, computeContentHash, normalizeTitle, stripHtmlAndEntities, RSS_FEEDS_BY_CATEGORY, CORE_NEWS_FEEDS, searchRssFeedsForKeyword } from './shared/rssIngest.js';
 import { classifyCategory, detectBrand } from './shared/categoryClassifier.js';
 
 try {
@@ -23,8 +23,10 @@ app.use(express.static(__dirname));
 
 const RPM_LIMIT = Number(process.env.GEMINI_RPM_LIMIT) || 10;
 const RPD_LIMIT = Number(process.env.GEMINI_RPD_LIMIT) || 250;
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.7-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const ARBITER_MODEL_CONFIG = process.env.GEMINI_ARBITER_MODEL || MODEL;
+const SEARCH_GROUNDING_ENABLED = process.env.ENABLE_SEARCH_GROUNDING !== 'false';
+const DEFAULT_OPERATOR_ROLE = process.env.DEFAULT_OPERATOR_ROLE || "Brand Director";
 
 let runtimeApiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
 
@@ -48,7 +50,7 @@ let totalCallsAttempted = 0;
 let totalCallsSuccessful = 0;
 
 const REFRESH_MS = Number(process.env.NEWS_REFRESH_MS) || 600_000; // 10 minutes automated search
-const EMIT_MS = 3_000;
+const EMIT_MS = Number(process.env.EMIT_INTERVAL_MS) || 3_000;
 const BUFFER_MAX = 60;
 const SIGNALS_MAX = 40;
 
@@ -114,7 +116,7 @@ export function evaluateDecisionRights(budgetINR, operatorRole, isControversial 
     requiredLevel = DECISION_MATRIX.LEVEL_1;
   }
 
-  const role = (operatorRole || "Brand Director").trim();
+  const role = (operatorRole || DEFAULT_OPERATOR_ROLE).trim();
   if (role === "Viewing Only" || role === "Observer") {
     return {
       authorized: false,
@@ -1248,7 +1250,7 @@ export function getDerivedResetStrings() {
 
 export function attemptLiveRecovery() {
   const currentPacificDate = getPacificDayKey();
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const geminiKey = getEffectiveApiKey();
   const now = Date.now();
 
   // If in replay due to transient RPM rate limit and 90s have passed, auto-recover if daily quota remains
@@ -1346,10 +1348,10 @@ function trackApiCall() {
 }
 
 // ----------------------------------------------------
-// IN-MEMORY & SQLITE CACHE WITH 6-HOUR TTL
+// IN-MEMORY & SQLITE CACHE WITH CONFIGURABLE TTL
 // ----------------------------------------------------
 const memCache = new Map();
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const CACHE_TTL_MS = (Number(process.env.CACHE_TTL_MINUTES) || 360) * 60 * 1000; // default 6 hours
 
 export function computeCacheKey(headline, agentName, constraint = '') {
   return crypto.createHash('sha256').update(`${(headline || '').trim().toLowerCase()}|${(agentName || '').trim().toLowerCase()}|${(constraint || '').trim().toLowerCase()}`).digest('hex');
@@ -1718,7 +1720,7 @@ async function executeGeminiCall(ai, prompt, { promptName, enableSearch = false,
 
     try {
       const config = {};
-      if (enableSearch) {
+      if (enableSearch && SEARCH_GROUNDING_ENABLED) {
         config.tools = [{ googleSearch: {} }];
       }
       if (responseSchema) {
@@ -2198,7 +2200,7 @@ Return strictly a JSON object:
 // Orchestrator for full 8-agent mesh evaluation with Caching, Lazy Eval, & Downshift Protection
 export async function evaluateWithAgentMesh(candidate, context = {}) {
   const quota = getQuotaStatus();
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const geminiKey = getEffectiveApiKey();
 
   if (!geminiKey || systemMode === 'replay') {
     // Return high-fidelity replay results without consuming API quota
@@ -3530,8 +3532,8 @@ app.post('/api/signals/search', async (req, res) => {
     const rssMatches = await searchRssFeedsForKeyword(query);
     if (Array.isArray(rssMatches) && rssMatches.length > 0) {
       for (const item of rssMatches) {
-        const headline = item.headline || item.title || '';
-        const summary = item.summary || item.description || '';
+        const headline = stripHtmlAndEntities(item.headline || item.title || '');
+        const summary = stripHtmlAndEntities(item.summary || item.description || '');
         if (!headline) continue;
 
         const detectedBrand = item.brand || detectBrand(headline, summary, 'HUL');
@@ -3878,7 +3880,7 @@ app.post('/api/mesh/evaluate', async (req, res) => {
 // 7. Signals Refresh (Grounded Signal Generator)
 app.post('/api/signals/refresh', async (req, res) => {
   const brandQuery = req.body.brandQuery || "Hindustan Unilever HUL Brands India";
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const geminiKey = getEffectiveApiKey();
 
   if (geminiKey && systemMode !== 'replay') {
     try {
@@ -4021,7 +4023,7 @@ app.post('/api/agents/re-evaluate', async (req, res) => {
   const targetBrand = brand || targetSignal.brand;
   const userConstraint = constraint || "Competitor launches aggressive discount in parallel";
 
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const geminiKey = getEffectiveApiKey();
   if (geminiKey && systemMode !== 'replay') {
     try {
       const ai = new GoogleGenAI({
@@ -4436,6 +4438,18 @@ app.get('/api/health', (req, res) => {
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get(['/moment-queue', '/moment-queue/', '/queue'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'moment-queue', 'index.html'));
+});
+
+app.get(['/scorecard', '/scorecard/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'scorecard', 'index.html'));
+});
+
+app.get(['/decision-record', '/decision-record/', '/decision', '/decision/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'decision-record', 'index.html'));
 });
 
 function printStartupBanner() {
