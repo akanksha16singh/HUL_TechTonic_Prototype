@@ -1724,10 +1724,29 @@ async function submitExecution() {
 
     markSignalExecutedInUI(activeSignal.id, result.record);
 
+    term.innerHTML += `
+      <div style="background:#064E3B;border:1px solid #059669;border-radius:8px;padding:14px;margin-top:14px;color:#fff">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <b style="font-size:13px;color:#6EE7B7">⚡ DECISION SEALED INTO IMMUTABLE LEDGER</b>
+          <span style="font-size:10px;background:#047857;padding:2px 6px;border-radius:4px">BLOCK 00489</span>
+        </div>
+        <div style="font-size:12px;color:#D1FAE5;line-height:1.4;margin-bottom:12px">
+          Dispatched on active channels. Transitioning to <b>Decision Record & Team Insights</b> in 2s...
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="/decision-record/?moment=${activeSignal.id}&executed=true" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#1F44D6;color:#FFFFFF;border-radius:6px;font-weight:700;font-size:12px;text-decoration:none">
+            ⚡ Open Decision Record Now →
+          </a>
+          <button onclick="if(window.openTeamShareModal) window.openTeamShareModal('${activeSignal.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#FFFFFF;border:none;color:#0E1B33;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer">
+            📤 Share Insights with Team
+          </button>
+        </div>
+      </div>
+    `;
+
     setTimeout(() => {
-      closeModal();
-      submitBtn.disabled = false;
-    }, 2000);
+      window.location.href = `/decision-record/?moment=${activeSignal.id}&executed=true`;
+    }, 2200);
 
   } catch (err) {
     warnBox.style.display = 'block';
@@ -2288,5 +2307,6 @@ document.addEventListener('DOMContentLoaded', initWarRoom);
 <script src="/shared/mindmap.js"></script>
 <script src="/shared/statusBar.js"></script>
 <script src="/shared/aiDrawer.js"></script>
+<script src="/shared/teamShareModal.js"></script>
 </body>
 </html>

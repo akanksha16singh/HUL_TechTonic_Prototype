@@ -768,7 +768,61 @@ body {
 
 <script src="/shared/statusBar.js"></script>
 <script src="/shared/aiDrawer.js"></script>
+<script src="/shared/teamShareModal.js"></script>
 <script>
+// Dynamic URL Param Handling
+const urlParams = new URLSearchParams(window.location.search);
+const currentMomentId = urlParams.get('moment') || 'sig-mumbai-monsoon-772';
+const isExecuted = urlParams.get('executed') === 'true' || urlParams.get('action') === 'approve';
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (isExecuted) {
+    applyExecutedState();
+  }
+});
+
+function applyExecutedState() {
+  const banner = document.getElementById('holdingBanner');
+  if (banner) {
+    banner.style.background = '#ECFDF5';
+    banner.style.borderColor = '#A7F3D0';
+    banner.style.borderLeftColor = '#0E9F6E';
+    banner.innerHTML = `
+      <div class="holding-banner-left">
+        <div class="holding-user-avatar" style="background:#0E9F6E">✓</div>
+        <div>
+          <div class="holding-banner-title" style="color:#065F46">⚡ LIVE EXECUTION CONFIRMED & SEALED INTO IMMUTABLE LEDGER</div>
+          <div class="holding-banner-sub" style="color:#047857">
+            All sign-offs completed. Meta Ads API active across Mumbai MMR. Dark store surge buffer committed. 120s undo protocol standing by.
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="window.openTeamShareModal('${currentMomentId}')" style="padding:8px 14px;background:#1F44D6;color:#fff;border:none;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          📤 Share Insights with Team
+        </button>
+      </div>
+    `;
+  }
+
+  // Update all chain steps to completed
+  ['stage1Card', 'stage2Card', 'stage3Card'].forEach((id, idx) => {
+    const card = document.getElementById(id);
+    if (card) {
+      card.className = 'chain-step-card step-completed';
+    }
+  });
+
+  const s1 = document.getElementById('stage1State');
+  if (s1) { s1.className = 'step-state-badge state-done'; s1.innerText = 'APPROVED WITH WAIVER'; }
+
+  const s2 = document.getElementById('stage2State');
+  if (s2) { s2.className = 'step-state-badge state-done'; s2.innerText = 'BUDGET AUTHORIZED (₹2.40L)'; }
+
+  const s3 = document.getElementById('stage3State');
+  if (s3) { s3.className = 'step-state-badge state-done'; s3.innerText = 'DISPATCHED & LIVE'; }
+}
+
 function simulateLegalApproval() {
   document.getElementById('stage1Card').className = 'chain-step-card step-completed';
   document.getElementById('stage1State').className = 'step-state-badge state-done';
@@ -805,7 +859,11 @@ function executeEmergencyKillSwitch() {
 }
 
 function openDecisionShareModal() {
-  document.getElementById('decisionShareModal').style.display = 'flex';
+  if (window.openTeamShareModal) {
+    window.openTeamShareModal(currentMomentId);
+  } else {
+    document.getElementById('decisionShareModal').style.display = 'flex';
+  }
 }
 function closeDecisionShareModal() {
   document.getElementById('decisionShareModal').style.display = 'none';

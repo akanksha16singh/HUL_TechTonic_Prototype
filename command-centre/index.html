@@ -271,6 +271,15 @@ a:hover{color:#163398}
                   <span style="font:700 12px/1 'Plus Jakarta Sans';color:{{ decision.doneColor }}">{{ decision.doneTitle }}</span>
                 </div>
                 <div style="font:500 11px/1.55 'Plus Jakarta Sans';color:#5A6884">{{ decision.doneNote }}</div>
+                
+                <!-- Decision Record & Team Share Links -->
+                <a href="/decision-record/?moment={{ m.id }}&executed=true&action=approve" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;font:700 11.5px/1 'Plus Jakarta Sans';color:#FFFFFF;background:#1F44D6;border:0;border-radius:9px;padding:11px 10px;margin-top:12px;text-decoration:none;transition:all .18s ease" style-hover="background:#163398">
+                  ⚡ View Decision Record & Ledger →
+                </a>
+                <button onClick="{{ onShareTeamInsights }}" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;font:700 11px/1 'Plus Jakarta Sans';color:#1E293B;background:#F8FAFC;border:1px solid #CBD5E1;border-radius:9px;padding:9px;margin-top:6px;cursor:pointer">
+                  📤 Share Insights with the Team
+                </button>
+
                 <div style="display:flex;gap:8px;margin-top:11px">
                   <button onClick="{{ onEdit }}" style="flex:1;font:700 11px/1 'Plus Jakarta Sans';color:#1F44D6;background:#FFFFFF;border:1px solid #D3DFFF;border-radius:9px;padding:10px 6px;cursor:pointer" style-hover="background:#EAF0FF">Edit detail</button>
                   <button onClick="{{ onUndo }}" style="flex:1;font:700 11px/1 'Plus Jakarta Sans';color:#C13A4C;background:#FFFFFF;border:1px solid #F6DDE1;border-radius:9px;padding:10px 6px;cursor:pointer" style-hover="background:#FDF2F4">{{ decision.undoLabel }}</button>
@@ -2092,6 +2101,12 @@ class Component extends DCLogic {
         color: kind === "decline" ? "#C13A4C" : "#0E9F6E", rowBg: "#F7FBF9"
       }].concat(s.ledger)
     }));
+
+    if (kind === "approve" || kind === "edit") {
+      if (window.showDecisionExecutionSuccessModal) {
+        window.showDecisionExecutionSuccessModal(id, m.brand, kind);
+      }
+    }
   }
 
   decideWithDetails(kind, customDetails) {
@@ -2152,6 +2167,10 @@ class Component extends DCLogic {
         color: "#6A4CE0", rowBg: "#F7FBF9"
       }].concat(s.ledger)
     }));
+
+    if (window.showDecisionExecutionSuccessModal) {
+      window.showDecisionExecutionSuccessModal(id, m.brand, kind);
+    }
   }
 
   openEditModal() {
@@ -2658,6 +2677,11 @@ class Component extends DCLogic {
       onOpenEditModal: () => this.openEditModal(),
       onDecline: () => this.decide("decline"),
       onUndo: () => this.undo(),
+      onShareTeamInsights: () => {
+        if (window.openTeamShareModal) {
+          window.openTeamShareModal(this.state.momentId);
+        }
+      },
       feed: st.feed
     };
   }
@@ -3124,9 +3148,59 @@ window.prevCcTourStep = function() {
     window.renderCcTourStep();
   }
 };
+
+window.showDecisionExecutionSuccessModal = function(momentId, brand, kind) {
+  const existing = document.getElementById('decisionSuccessModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'decisionSuccessModal';
+  modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(14,27,51,0.8);backdrop-filter:blur(6px);z-index:999999;align-items:center;justify-content:center;padding:20px;font-family:\'Plus Jakarta Sans\',sans-serif';
+  modal.innerHTML = `
+    <div style="background:#FFFFFF;border-radius:14px;max-width:580px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.3);overflow:hidden;border:1px solid #DCE3F0;animation:pop .2s ease-out">
+      <div style="padding:18px 22px;background:#0E9F6E;color:#FFFFFF;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">⚡</span>
+          <div>
+            <b style="font-size:15px">DECISION APPROVED & ACTIVATION RUNNING</b>
+            <div style="font-size:11.5px;color:rgba(255,255,255,0.9)">Immutable Ledger Block 00489 Sealed</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('decisionSuccessModal').remove()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+      </div>
+      
+      <div style="padding:22px">
+        <div style="font-size:13.5px;color:#1E293B;font-weight:700;margin-bottom:6px">
+          ${brand}: Spontaneous Commuter Rescue Activation is now live.
+        </div>
+        <div style="font-size:12px;color:#5A6884;line-height:1.5;margin-bottom:18px">
+          Meta Ads Manager and Dark Store buffers have received authenticated API dispatch triggers. The decision record, audit hash, and team briefing packs are ready.
+        </div>
+
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px 14px;margin-bottom:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11.5px">
+          <div><b>Spend Authorization:</b> ₹2,40,000</div>
+          <div><b>Undo SLA:</b> 120s API Retraction</div>
+          <div><b>Sign-Off:</b> Meenakshi Sundaram [Legal]</div>
+          <div><b>Ledger Hash:</b> 0x7f8a92b3c104...</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a href="/decision-record/?moment=${momentId}&executed=true&action=${kind}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:#1F44D6;color:#FFFFFF;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;transition:all .18s ease">
+            ⚡ Open Full Decision Record & Audit Ledger →
+          </a>
+          <button onclick="document.getElementById('decisionSuccessModal').remove(); if (window.openTeamShareModal) window.openTeamShareModal('${momentId}');" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:#FFFFFF;border:1px solid #CBD5E1;color:#0E1B33;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer">
+            📤 Share Insights with Cross-Functional Team (Briefing Pack)
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+};
 </script>
 <script src="/shared/mindmap.js"></script>
 <script src="/shared/statusBar.js"></script>
 <script src="/shared/aiDrawer.js"></script>
+<script src="/shared/teamShareModal.js"></script>
 </body>
 </html>

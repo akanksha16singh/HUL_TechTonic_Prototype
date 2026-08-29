@@ -1215,9 +1215,13 @@ const sharePacks = {
 let currentShareTab = 'all';
 
 function openShareModal(tab) {
-  currentShareTab = tab || 'all';
-  document.getElementById('shareModal').style.display = 'flex';
-  renderShareTab();
+  if (window.openTeamShareModal) {
+    window.openTeamShareModal('sig-mumbai-monsoon-772');
+  } else {
+    currentShareTab = tab || 'all';
+    document.getElementById('shareModal').style.display = 'flex';
+    renderShareTab();
+  }
 }
 function closeShareModal() {
   document.getElementById('shareModal').style.display = 'none';
@@ -1250,5 +1254,8 @@ function sendSlackDispatchSimulation() {
   closeShareModal();
 }
 </script>
+<script src="/shared/statusBar.js"></script>
+<script src="/shared/aiDrawer.js"></script>
+<script src="/shared/teamShareModal.js"></script>
 </body>
 </html>

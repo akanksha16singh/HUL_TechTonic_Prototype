@@ -538,7 +538,11 @@ body {
 <script src="/shared/aiDrawer.js"></script>
 <script>
 function openQueueShareModal() {
-  document.getElementById('queueShareModal').style.display = 'flex';
+  if (window.openTeamShareModal) {
+    window.openTeamShareModal('sig-mumbai-monsoon-772');
+  } else {
+    document.getElementById('queueShareModal').style.display = 'flex';
+  }
 }
 function closeQueueShareModal() {
   document.getElementById('queueShareModal').style.display = 'none';
@@ -552,5 +556,8 @@ function copyQueueSummary() {
   });
 }
 </script>
+<script src="/shared/statusBar.js"></script>
+<script src="/shared/aiDrawer.js"></script>
+<script src="/shared/teamShareModal.js"></script>
 </body>
 </html>
