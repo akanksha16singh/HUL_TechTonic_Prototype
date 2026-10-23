@@ -3,17 +3,30 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
-    "start": "node server.js",
-    "lint": "node --check server.js",
-    "build": "echo 'No build step needed'"
+    "dev": "tsx server.ts",
+    "start": "tsx server.ts",
+    "lint": "tsc --noEmit",
+    "build": "vite build"
   },
   "dependencies": {
     "@babel/standalone": "^8.0.4",
     "@google/genai": "^2.19.0",
+    "@tailwindcss/vite": "^4.3.3",
     "express": "^4.21.2",
+    "lucide-react": "^1.61.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "sql.js": "^1.14.2"
+    "sql.js": "^1.14.2",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
   }
 }
